@@ -7,9 +7,9 @@
 
 #define MAXINPUT 8000
 
-#if !defined(SINGLE)
-#error THIS WILL ONLY WORK WITH SINGLE
-#endif
+// #if !defined(SINGLE)
+// #error THIS WILL ONLY WORK WITH SINGLE
+// #endif
 
 int proc2id;
 char decode_char;
@@ -73,6 +73,7 @@ int main(void) {
   while(1) {  //infinite loop until we get a .
     scanf("%[^\n]", sending_msg);
     getchar();
+    sending_msg[strlen(sending_msg)] = '\n';
     if(strcmp(&sending_msg[0], ".") == 0) {
       break;
     } else {
