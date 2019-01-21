@@ -12,7 +12,10 @@ char decode_char;
 int char_count = 0;
 char sending_msg[MAX];
 
-void check_print() {
+void check_print() { 
+  /*helper method for signal handler. Keeps track of bitcount for current character.
+  if the current bitcount is equal to 8, then the current character has been built.
+  Then, the character is ready to be interpreted, and this function prints it to the receiving process*/
    if (++char_count == 8) {
     write(1, &decode_char, 1);
     decode_char = '\0';
@@ -21,21 +24,26 @@ void check_print() {
 }
 
 void sig1(int signum) {
+  //sends a signal to encode a bit as 0
   check_print();
 }
 void sig2(int signum) {
+  //sends a signal to encode a bit as 1
   decode_char = decode_char | (1 << (7-char_count));
   check_print();
 }
 
 void send_to_proc() {
+  //Encodes the characters into bits, then calls sig1 and sig2 depending on the bits.
+  //This sends a signal to the other process.
   int i = 0;
-  while (i<MAX) {
+  while (i<MAX) {    //Makes sure that we don't get out of bounds access from array
     unsigned char c = sending_msg[i];
-    if (strcmp(&sending_msg[i], "\0") == 0) {
+    if (strcmp(&sending_msg[i], "\0") == 0) { //ends the loop if we hit a null character.
+
       break;
     }
-    for (int j=7; j>=0; j--) {
+    for (int j=7; j>=0; j--) { //Decodes a single character into individual bits.
       int bit = (c >> j) & 1;
       if (bit == 0) {
         kill(proc2id, SIGUSR1);
@@ -47,10 +55,11 @@ void send_to_proc() {
     i++;
   }
   printf("\n");
-  memset(sending_msg, '\0', i);
+  memset(sending_msg, '\0', i); //Clears the array of the modified characters.
 }
 
 int main(void) {
+  //Infinite loop function. Grabs user input then calls helper functions.
   signal(SIGUSR1, sig1);
   signal(SIGUSR2, sig2);
 
