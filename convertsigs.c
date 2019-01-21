@@ -7,11 +7,8 @@
 
 #define MAX 8000
 
-
-
-
-#ifdef DSINGLE
-  printf("dsingle is defined");
+#if !defined(SINGLE)
+#error THIS WILL ONLY WORK WITH SINGLE lol
 #endif
 
 int proc2id;
@@ -19,7 +16,7 @@ char decode_char;
 int char_count = 0;
 char sending_msg[MAX];
 
-void check_print() { 
+void check_print() {
   /*helper method for signal handler. Keeps track of bitcount for current character.
   if the current bitcount is equal to 8, then the current character has been built.
   Then, the character is ready to be interpreted, and this function prints it to the receiving process*/
