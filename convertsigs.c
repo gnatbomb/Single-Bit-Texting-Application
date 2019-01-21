@@ -7,6 +7,13 @@
 
 #define MAX 8000
 
+
+
+
+#ifdef DSINGLE
+  printf("dsingle is defined");
+#endif
+
 int proc2id;
 char decode_char;
 int char_count = 0;
