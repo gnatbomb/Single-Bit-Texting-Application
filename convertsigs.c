@@ -6,6 +6,7 @@
 #include <string.h>
 
 #define MAXINPUT 8000
+#define SLEEPTIME 500
 
 // #if !defined(SINGLE)
 // #error THIS WILL ONLY WORK WITH SINGLE
@@ -54,7 +55,7 @@ void send_to_proc() {
       } else if (bit == 1) {
         kill(proc2id, SIGUSR2);
       }
-      usleep(50);
+      usleep(SLEEPTIME);
     }
     i++;
   }
@@ -73,6 +74,7 @@ int main(void) {
   while(1) {  //infinite loop until we get a .
     scanf("%[^\n]", sending_msg);
     getchar();
+    sending_msg[strlen(sending_msg)] = '\n';
     sending_msg[strlen(sending_msg)] = '\n';
     if(strcmp(&sending_msg[0], ".") == 0) {
       break;
