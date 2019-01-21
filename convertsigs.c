@@ -5,16 +5,16 @@
 #include <unistd.h>
 #include <string.h>
 
-#define MAX 8000
+#define MAXINPUT 8000
 
 #if !defined(SINGLE)
-#error THIS WILL ONLY WORK WITH SINGLE lol
+#error THIS WILL ONLY WORK WITH SINGLE
 #endif
 
 int proc2id;
 char decode_char;
 int char_count = 0;
-char sending_msg[MAX];
+char sending_msg[MAXINPUT];
 
 void check_print() {
   /*helper method for signal handler. Keeps track of bitcount for current character.
@@ -41,7 +41,7 @@ void send_to_proc() {
   //Encodes the characters into bits, then calls sig1 and sig2 depending on the bits.
   //This sends a signal to the other process.
   int i = 0;
-  while (i<MAX) {    //Makes sure that we don't get out of bounds access from array
+  while (i<MAXINPUT) {    //Makes sure that we don't get out of bounds access from array
     unsigned char c = sending_msg[i];
     if (strcmp(&sending_msg[i], "\0") == 0) { //ends the loop if we hit a null character.
 
@@ -64,13 +64,13 @@ void send_to_proc() {
 
 int main(void) {
   //Infinite loop function. Grabs user input then calls helper functions.
-  signal(SIGUSR1, sig1);
-  signal(SIGUSR2, sig2);
+  signal(SIGUSR1, sig1); //assigns sig1 to SIGUSR1
+  signal(SIGUSR2, sig2); //assigns sig2 to SIGUSR2
 
-  printf("Own PID: %d\n", getpid());
-  scanf("%d", &proc2id);
+  printf("Own PID: %d\n", getpid());  //prints own pid
+  scanf("%d", &proc2id);              //asks for other process's pid
 
-  while(1) {
+  while(1) {  //infinite loop until we get a .
     scanf("%[^\n]", sending_msg);
     getchar();
     if(strcmp(&sending_msg[0], ".") == 0) {
