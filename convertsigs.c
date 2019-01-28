@@ -32,6 +32,15 @@ int message_checksum = 0;
 int current_checksum_bit = 0;
 
 
+
+
+/**
+ * TODO:
+ * fix the sendsum() function to send int rather than character.
+ * fix the reveive_sum() function to read int
+ * implement checkforerrors and dumpmessage.
+ * */
+
 void check_print() {
   /*helper method for signal handler. Keeps track of bitcount for current character.
   if the current bitcount is equal to 8, then the current character has been built.
@@ -160,7 +169,7 @@ void send_checksum(int i){
       sendsum += sending_msg[j];
     }
 
-  int j=0; j<sizeof(int); j++) { //Decodes a single character into individual bits.
+  int j=0; j<sizeof(int); j++) { //Decodes sendsum into single bits.
       int bit = (sendsum >> j) & 1;
       if (bit == 0) {
         for(int i = 0; i < (ONEVALUE); i++){
