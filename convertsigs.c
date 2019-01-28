@@ -8,7 +8,7 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 
-#define MAXINPUT 800       //Longest string of characters that can be sent in a single message
+#define MAXINPUT 800000       //Longest string of characters that can be sent in a single message
 #define SLEEPTIME 500        //Microseconds between messages
 #define PAUSETIME 500      //Microseconds between pings for single bit encoding
 #define MAXDELAY 2000    //Maximum time spent waiting for double-bit encoding
