@@ -9,22 +9,25 @@
 #include <sys/time.h>
 
 #define MAXINPUT 800000       //Longest string of characters that can be sent in a single message
-#define SLEEPTIME 500        //Microseconds between messages
-#define PAUSETIME 500      //Microseconds between pings for single bit encoding
-#define MAXDELAY 2000    //Maximum time spent waiting for double-bit encoding
+#define SLEEPTIME 500         //Microseconds between messages
+#define PAUSETIME 50          //Microseconds between pings for single bit encoding
+#define MAXDELAY 2000         //Maximum time spent waiting for double-bit encoding
+#define ONEVALUE 6            //number of pings to represent a 1
 
 int proc2id;
 char decode_char;
 int char_count = 0;
 char sending_msg[MAXINPUT];
 char rec_msg[MAXINPUT];
+int blocked;
+
 
 
 void check_print() {
   /*helper method for signal handler. Keeps track of bitcount for current character.
   if the current bitcount is equal to 8, then the current character has been built.
   Then, the character is ready to be interpreted, and this function prints it to the receiving process*/
-   if (++char_count == 8) {
+  if (++char_count == 8) {
     write(1, &decode_char, 1);
     decode_char = '\0';
     char_count = 0;
@@ -89,12 +92,16 @@ void send_to_proc() {
     for (int j=7; j>=0; j--) { //Decodes a single character into individual bits.
       int bit = (c >> j) & 1;
       if (bit == 0) {
-        kill(proc2id, SIGUSR1);
+        for(int i = 0; i < (ONEVALUE / 2); i++){
+          usleep(PAUSETIME);
+          kill(proc2id, SIGUSR1);
+        }
       }
       else{
-        kill(proc2id, SIGUSR1);
-        usleep(PAUSETIME);
-        kill(proc2id, SIGUSR1);
+        for(int i = 0; i < (2 * ONEVALUE); i++){
+          usleep(PAUSETIME);
+          kill(proc2id, SIGUSR1);
+        }
       }
       usleep(MAXDELAY * 2);
     }
@@ -106,7 +113,7 @@ void send_to_proc() {
 }
 
 void printcall(){
-  if (pingCount >= 2){
+  if (pingCount >= ONEVALUE){
     decode_char = decode_char | (1 << (7-char_count));
   }
   gettimeofday(&milliseconds, NULL);
@@ -117,6 +124,7 @@ void printcall(){
 }
 
 void sig1(int signum) {
+  blocked = 1;
   if (firstCall){
     gettimeofday(&milliseconds, NULL);
     actualMilliseconds = (milliseconds.tv_sec * 1000) + (milliseconds.tv_usec/1000);
@@ -153,8 +161,10 @@ int main(void) {
   signal(SIGUSR2, sig2); //assigns sig2 to SIGUSR2
   printf("Own PID: %d\nEnter partner's PID: ", getpid());  //prints own pid
   scanf("%d", &proc2id);              //asks for other process's pid
+  sleep(1);
   while(1) {  //infinite loop until we get a .
     scanf("%[^\n]", sending_msg);
+    while (blocked);
     getchar();
     sending_msg[strlen(sending_msg)] = '\n';
     sending_msg[strlen(sending_msg)] = '\n';
