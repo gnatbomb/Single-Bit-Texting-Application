@@ -18,8 +18,11 @@ int proc2id;
 char decode_char;
 int char_count = 0;
 char sending_msg[MAXINPUT];
-char rec_msg[MAXINPUT];
+char decode_buffer[MAXINPUT];
 int blocked;
+int sending_message_len;
+int rec_message_len = 0;
+bool message_len_received = false;
 
 
 
@@ -37,6 +40,25 @@ void check_print() {
 }
 
 #if !defined(SINGLE) //this is for when we have 2-bits for signals
+
+void send_message_len(){
+  for (int j = sizeof(int) - 1; j>=0; j--) { //Decodes a single character into individual bits.
+      int bit = (c >> j) & 1;
+      if (bit == 0) {
+        kill(proc2id, SIGUSR1);
+      } else if (bit == 1) {
+        kill(proc2id, SIGUSR2);
+      }
+      usleep(SLEEPTIME);
+    }
+    usleep(4 * MAXDELAY);
+  return;
+}
+}
+
+
+
+
 void sig1(int signum) {
   //sends a signal to encode a bit as 0
   check_print();
@@ -71,13 +93,12 @@ void send_to_proc() {
 
 //The following is the code which runs when we only have a single bit of information we can send.
 
-#if defined(SINGLE) //this is for when we have only 1-bit for signals
-int remainingPause = MAXDELAY;
-int firstCall = 1;
-int pingCount = 0;
-struct timeval milliseconds; //milliseconds since last killcall.
-long int actualMilliseconds;
-long int newActualMilliseconds;
+#if defined(SINGLE)         //this is for when we have only 1-bit for signals
+int firstCall = 1;           //keeps track of if this is the first time a message is being sent in this instance
+int pingCount = 0;          // number of times that a signal has been sent in the last timeframe
+struct timeval milliseconds; //Time structure which we use to grab the time
+long int actualMilliseconds;  //time since the beginning of this bit's first signal
+long int newActualMilliseconds; //time of the most recent signal for this bit.
 
 void send_to_proc() {
   //Encodes the characters into bits, then calls sig1 and sig2 depending on the bits.
@@ -92,7 +113,7 @@ void send_to_proc() {
     for (int j=7; j>=0; j--) { //Decodes a single character into individual bits.
       int bit = (c >> j) & 1;
       if (bit == 0) {
-        for(int i = 0; i < (ONEVALUE / 2); i++){
+        for(int i = 0; i < (ONEVALUE); i++){
           usleep(PAUSETIME);
           kill(proc2id, SIGUSR1);
         }
@@ -113,7 +134,7 @@ void send_to_proc() {
 }
 
 void printcall(){
-  if (pingCount >= ONEVALUE){
+  if (pingCount > ONEVALUE){
     decode_char = decode_char | (1 << (7-char_count));
   }
   gettimeofday(&milliseconds, NULL);
@@ -124,7 +145,6 @@ void printcall(){
 }
 
 void sig1(int signum) {
-  blocked = 1;
   if (firstCall){
     gettimeofday(&milliseconds, NULL);
     actualMilliseconds = (milliseconds.tv_sec * 1000) + (milliseconds.tv_usec/1000);
@@ -164,6 +184,7 @@ int main(void) {
   sleep(1);
   while(1) {  //infinite loop until we get a .
     scanf("%[^\n]", sending_msg);
+    sending_message_len = strlen(sending_msg) + 2;
     while (blocked);
     getchar();
     sending_msg[strlen(sending_msg)] = '\n';
@@ -171,6 +192,7 @@ int main(void) {
     if(strcmp(&sending_msg[0], ".") == 0) {
       break;
     } else {
+      send_message_len();
       send_to_proc();
     }
   }
