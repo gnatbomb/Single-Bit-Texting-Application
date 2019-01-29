@@ -61,6 +61,12 @@ void check_for_errors(){
   for (int i = 0; i < current_char_itr; i++){
     rec_sum += decode_buffer[i];
   }
+  if (message_checksum == rec_sum){
+    printf("!   ");
+  }
+  else{
+    printf("?   ");
+  }
 }
 
 void dump_message(){      /// remember to add checksum here to see if there was an error
@@ -125,6 +131,31 @@ void send_to_proc() {
 
 #if defined(SINGLE)         //this is for when we have only 1-bit for signals
 
+void send_checksum(int i){
+  int sendsum;
+  sendsum = 0;
+  for (int j = 0; j < i; j++){
+    sendsum += sending_msg[j];
+  }
+
+for (int j=0; j<sizeof(int); j++){ //Decodes sendsum into single bits.
+    int bit = (sendsum >> j) & 1;
+    if (bit == 0) {
+      for(int i = 0; i < (ONEVALUE); i++){
+        usleep(PAUSETIME);
+        kill(proc2id, SIGUSR1);
+      }
+    }
+    else{
+      for(int i = 0; i < (2 * ONEVALUE); i++){
+        usleep(PAUSETIME);
+        kill(proc2id, SIGUSR1);
+      }
+    }
+    usleep(MAXDELAY * 2);
+  }
+  //printf("send one character\n");
+}
 
 void send_to_proc() {
   //Encodes the characters into bits, then calls sig1 and sig2 depending on the bits.
@@ -162,33 +193,7 @@ void send_to_proc() {
   return;
 }
 
-void send_checksum(int i){
-  int sendsum;
-  sendsum = 0;
-    for (int j = 0; j < i; j++){
-      sendsum += sending_msg[j];
-    }
 
-  int j=0; j<sizeof(int); j++) { //Decodes sendsum into single bits.
-      int bit = (sendsum >> j) & 1;
-      if (bit == 0) {
-        for(int i = 0; i < (ONEVALUE); i++){
-          usleep(PAUSETIME);
-          kill(proc2id, SIGUSR1);
-        }
-      }
-      else{
-        for(int i = 0; i < (2 * ONEVALUE); i++){
-          usleep(PAUSETIME);
-          kill(proc2id, SIGUSR1);
-        }
-      }
-      usleep(MAXDELAY * 2);
-    }
-    //printf("send one character\n");
-    i++;
-  }
-}
 
 void printcall(){
   if (pingCount > ONEVALUE){
@@ -221,7 +226,7 @@ void sig1(int signum) {
   gettimeofday(&milliseconds, NULL);
   newActualMilliseconds = (milliseconds.tv_sec * 1000) + (milliseconds.tv_usec/1000);
   if (TIMEBETWEENMESSAGES/1000 < (newActualMilliseconds - actualMilliseconds)){
-    if (recieved_checksum){
+    if (received_checksum){
     dump_message();
     received_checksum = false;
     return;
