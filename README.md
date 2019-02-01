@@ -1,4 +1,7 @@
-# 379Assignment1
+379Assignment1
+Group: nbombard, usman1
+TESTED ON VM
+
 
 Plan for encoding:
 	Once a connection is established, the user enters their message.
@@ -39,9 +42,35 @@ Question 2)
 The program breaks each message into its individual characters and sends them one at a time. The characters are then broken into their binary representation, so we can send 8 1's or 0's per character. The recieving program then interprets these characters and prints them. This part is the same as my explanation in question 1.
 The way the programs communicate is using SIGUSR1 and SIGUSR2. If a program receives a SIGUSR1, it treats this as receiving a 0, and keeps note of it. Same goes for SIGUSR2, but with a 1 instead.
 
+Question 3) A message boundary is represented as a C macro that specifies the length of an
+input. A message longer than this many bytes as defined by the macro would not work. The
+input mechanism only fetches upto a newline, and then a newline is appended by the code
+itself.
+
+Question 4) The intent was to compute a numerical sum of the chars of the input stream
+and send this with signals at the end of the actual translated bit-stream by the
+sending process, which the receiving process would then use to compare the received
+sum with its own computed sum.
+
+Question 5) If the above mechanism were implemented it would come with the complication that
+the actual sum that was sent was not read correctly, but the entire input stream was
+correctly decoded. This would result in a false positive. Similarly, a false negative
+could occur in the same manner.
+
+Question 6) The inputs are processed sequentially and if message streams are being sent while
+one is being decoded and printed out by the complementary process, those message streams
+are queued and will be sent immediately afterwards. This ensures that the decoded
+messages do not get intertwined with fast pased input streams.
+
 Question 7)
 We tried using SIGALARM while implementing the solution for the single signal problem. We chose not to use it because alarm() only allows the use of integers, and therefore entire seconds, but this proved far too slow for our needs.
 For the single signal problem I also tried using sigaction() to get the pid of the sending process. I had originally tried working around the "single signal" problem by forking a child process and having the child send a signal. Effectively, if a process received a SIGUSR1, it would check the pid of the sending process. If the pid matched the pid of its partner, it interpreted that as a 1, and if the pid didn't match the partner's pid (meaning the forked child sent it), it interpreted that as a 0. I, however, had difficulty implementing this solution and gave up on the idea.
+
+Question 8) The program uses time precision to the microsecond so it is difficult to
+micro-manage time efficiency. However, because of the scale of precision in time,
+most unnecessary CPU cycles are negligible and we minimized wait times as much as
+possible to deliver fast performance. For example there are only a couple of milliseconds
+for the single-signal solution to send multiple SIGUSR1 signals to encode a '1' bit.
 									
 									
 
@@ -53,3 +82,4 @@ Discussed the single signal solution together during Jan 21 Lab.
 Nicholas created the single signal solution and pushed to github on January 28.
 Discussed error handling and avoidance together in January 28 lab.
 Nicholas answered questions 1, 2, and 7 on the readme.
+Muhammad revised the submission code for readability and answered the remaining questions on February 1.
