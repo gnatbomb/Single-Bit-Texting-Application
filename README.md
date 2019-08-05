@@ -1,6 +1,10 @@
-379Assignment1
 Group: nbombard, usman1
-TESTED ON VM
+
+This C program allows two concurrent users to send text messages back and forth with one another, connecting the two using only a 1-bit pipe or 2 1-bit pipes.
+We accomplish this in a simple manner, following these steps in order:
+	1) User types their message and hits enter, this prevents new messages from being sent until after the current message is done being received.
+	2) Each character is encoded into 8-bit binary numbers based on their ASCII values. 
+	3) Once encoded, we send the bits one by one to the other user, whose computer decodes them. Since the bits can sometimes fail, we ensure accuracy as follows:
 
 
 Plan for encoding:
@@ -28,6 +32,8 @@ Plan for encoding:
 
 	Assuming we need to get at least 80 cpm, that means we have 80/60 = 1.333333 characters per second. Each character is 8 bits, which means we have 
 	0.166 seconds for each bit. Thus we decided that our single solution should use the timeframe of 20 ms to send.
+	
+With all of that out of the way, the message should appear on the receiver's computer accurately and quickly.
 	
 	
 	
